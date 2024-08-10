@@ -4,6 +4,7 @@ const $score = document.querySelector('#score');
 let playerId = null;
 let score = 0;
 
+// Получение уникального ID Telegram пользователя
 function start() {
     fetch('/get-player-id')
         .then(response => {
