@@ -12,10 +12,20 @@ const token = '7423830672:AAGij0DcWzNdNyu8DGHZ3mbuWNKB0QUOr0U';
 const bot = new TelegramBot(token, { polling: true });
 
 // Подключение к базе данных
-const db = new sqlite3.Database('./scores.db');
+const db = new sqlite3.Database('./scores.db', (err) => {
+    if (err) {
+        console.error('Error opening database:', err.message);
+    } else {
+        console.log('Connected to the SQLite database.');
+    }
+});
 
 // Создание таблицы, если она не существует
-db.run('CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY, score INTEGER)');
+db.run('CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY, score INTEGER)', (err) => {
+    if (err) {
+        console.error('Error creating table:', err.message);
+    }
+});
 
 // Middleware для обработки JSON
 const app = express();
@@ -68,6 +78,7 @@ bot.onText(/\/score/, (msg) => {
     const chatId = msg.chat.id;
     db.get('SELECT score FROM scores WHERE id = ?', [chatId], (err, row) => {
         if (err) {
+            console.error('Error fetching score:', err.message);
             bot.sendMessage(chatId, 'Произошла ошибка при получении счета.');
         } else {
             const score = row ? row.score : 0;
@@ -79,14 +90,18 @@ bot.onText(/\/score/, (msg) => {
 bot.onText(/\/add (\d+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const increment = parseInt(match[1], 10);
+    console.log(`Received /add command from ${chatId} with increment ${increment}`);
 
     db.get('SELECT score FROM scores WHERE id = ?', [chatId], (err, row) => {
         if (err) {
+            console.error('Error fetching score:', err.message);
             bot.sendMessage(chatId, 'Произошла ошибка при получении счета.');
         } else {
             const newScore = (row ? row.score : 0) + increment;
+            console.log(`Updating score for ${chatId} to ${newScore}`);
             db.run('INSERT INTO scores (id, score) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET score = excluded.score', [chatId, newScore], function (err) {
                 if (err) {
+                    console.error('Error updating score:', err.message);
                     bot.sendMessage(chatId, 'Произошла ошибка при обновлении счета.');
                 } else {
                     bot.sendMessage(chatId, `Ваш новый счет: ${newScore}`);
