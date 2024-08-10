@@ -1,12 +1,32 @@
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 
-let playerId = null; // Инициализируйте ID игрока через сервер или другой способ
-let score = 0;
+let playerId = null; // Инициализируем playerId
 
 function start() {
-    // Здесь вы можете реализовать логику получения playerId, если это требуется.
-    // Например, через серверный API или другой способ
+    // Получаем playerId от сервера
+    fetch('/user-id/123456789') // Замените 123456789 на реальный ID, который нужно использовать
+        .then(response => response.json())
+        .then(data => {
+            playerId = data.id;
+            console.log('Player ID received:', playerId);
+            fetchScore(); // После получения ID, загружаем текущий счет
+        })
+        .catch(error => console.error('Error fetching user ID:', error));
+}
+
+function fetchScore() {
+    if (playerId) {
+        fetch(`/get-score/${playerId}`)
+            .then(response => response.json())
+            .then(data => {
+                setScore(data.score);
+                setImage();
+            })
+            .catch(error => console.error('Error fetching score:', error));
+    } else {
+        console.error('Player ID is not available.');
+    }
 }
 
 function setScore(newScore) {

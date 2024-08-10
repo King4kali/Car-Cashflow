@@ -35,6 +35,15 @@ app.use(bodyParser.json());
 // Обслуживание статических файлов из директории public
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Обработка запросов для получения ID пользователя
+app.get('/user-id/:chatId', (req, res) => {
+    const chatId = parseInt(req.params.chatId, 10);
+    if (isNaN(chatId)) {
+        return res.status(400).json({ error: 'Invalid chat ID' });
+    }
+    res.json({ id: chatId });
+});
+
 // Проверка и регистрация пользователя
 function registerUser(chatId) {
     db.get('SELECT id FROM scores WHERE id = ?', [chatId], (err, row) => {
