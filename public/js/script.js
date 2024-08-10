@@ -5,8 +5,13 @@ let playerId = null; // Инициализируйте ID игрока чере�
 let score = 0;
 
 function start() {
-    // Здесь вы можете реализовать логику получения playerId, если это требуется.
-    // Например, через серверный API или другой способ
+    fetch('/get-player-id')
+        .then(response => response.json())
+        .then(data => {
+            playerId = data.id;
+            console.log('Player ID:', playerId);
+        })
+        .catch(error => console.error('Error fetching player ID:', error));
 }
 
 function setScore(newScore) {
