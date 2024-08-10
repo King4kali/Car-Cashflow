@@ -8,7 +8,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const port = process.env.PORT || 3000;
 
 // Создание экземпляра бота
-const token = '7423830672:AAGij0DcWzNdNyu8DGHZ3mbuWNKB0QUOr0U';
+const token = '7423830672:AAFneo5E9lPGO7t6-91QMEyxe9XTTdu1ia8'; // Замените на ваш актуальный токен
 const bot = new TelegramBot(token, { polling: true });
 
 // Подключение к базе данных

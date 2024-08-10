@@ -1,19 +1,28 @@
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 
-// Замените этот ID на реальный Telegram ID пользователя
-const playerId = 123456789; // Пример Telegram ID
-
+let playerId = null;
 let score = 0;
 
 function start() {
-    fetch(`/get-score/${playerId}`)
+    // Получаем ID пользователя с сервера
+    fetch('/user-id')
         .then(response => response.json())
         .then(data => {
-            setScore(data.score);
-            setImage();
+            playerId = data.id;
+            if (playerId) {
+                fetch(`/get-score/${playerId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        setScore(data.score);
+                        setImage();
+                    })
+                    .catch(error => console.error('Error fetching score:', error));
+            } else {
+                console.error('No user ID found.');
+            }
         })
-        .catch(error => console.error('Error fetching score:', error));
+        .catch(error => console.error('Error fetching user ID:', error));
 }
 
 function setScore(newScore) {
@@ -38,16 +47,20 @@ function addOne() {
 }
 
 function saveScore(score) {
-    fetch('/save-score', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id: playerId, score })
-    })
-    .then(response => response.json())
-    .then(data => console.log('Score saved for ID:', data.id))
-    .catch(error => console.error('Error saving score:', error));
+    if (playerId) {
+        fetch('/save-score', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: playerId, score })
+        })
+        .then(response => response.json())
+        .then(data => console.log('Score saved for ID:', data.id))
+        .catch(error => console.error('Error saving score:', error));
+    } else {
+        console.error('No player ID available.');
+    }
 }
 
 $circle.addEventListener('click', (event) => {
