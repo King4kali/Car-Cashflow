@@ -35,47 +35,36 @@ app.use(bodyParser.json());
 // Обслуживание статических файлов из директории public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Маршрут для сохранения или обновления счета
-app.post('/save-score', (req, res) => {
-    const { id, score } = req.body;
-    if (typeof id !== 'number' || typeof score !== 'number') {
-        return res.status(400).json({ error: 'Invalid data' });
-    }
-    db.run('INSERT INTO scores (id, score) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET score = excluded.score', [id, score], function (err) {
+// Проверка и регистрация пользователя
+function registerUser(chatId) {
+    db.get('SELECT id FROM scores WHERE id = ?', [chatId], (err, row) => {
         if (err) {
-            return res.status(500).json({ error: err.message });
+            console.error('Error checking user:', err.message);
+            return;
         }
-        res.status(200).json({ id: id });
-    });
-});
-
-// Маршрут для получения счета по ID
-app.get('/get-score/:id', (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-        return res.status(400).json({ error: 'Invalid ID' });
-    }
-    db.get('SELECT score FROM scores WHERE id = ?', [id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
+        if (!row) {
+            // Пользователь не зарегистрирован, добавляем его
+            db.run('INSERT INTO scores (id, score) VALUES (?, ?)', [chatId, 0], (err) => {
+                if (err) {
+                    console.error('Error registering user:', err.message);
+                } else {
+                    console.log(`User ${chatId} registered.`);
+                }
+            });
         }
-        res.status(200).json({ score: row ? row.score : 0 });
     });
-});
-
-// Маршрут для корневого URL
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+}
 
 // Обработка команд от Telegram-бота
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
+    registerUser(chatId); // Регистрация пользователя
     bot.sendMessage(chatId, 'Привет! Отправьте /score, чтобы получить свой текущий счет, или /add <число>, чтобы добавить очки.');
 });
 
 bot.onText(/\/score/, (msg) => {
     const chatId = msg.chat.id;
+    registerUser(chatId); // Регистрация пользователя
     db.get('SELECT score FROM scores WHERE id = ?', [chatId], (err, row) => {
         if (err) {
             console.error('Error fetching score:', err.message);
@@ -91,6 +80,8 @@ bot.onText(/\/add (\d+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const increment = parseInt(match[1], 10);
     console.log(`Received /add command from ${chatId} with increment ${increment}`);
+
+    registerUser(chatId); // Регистрация пользователя
 
     db.get('SELECT score FROM scores WHERE id = ?', [chatId], (err, row) => {
         if (err) {
