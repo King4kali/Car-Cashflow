@@ -3,10 +3,11 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const app = express();
 
-// Использование переменной окружения PORT для порта, предоставляемого Vercel
+// Порт по умолчанию или порт из переменной окружения
 const port = process.env.PORT || 3000;
 
-const db = new sqlite3.Database('./scores.db'); // Используем относительный путь для базы данных
+// Подключение к базе данных
+const db = new sqlite3.Database('./scores.db');
 
 // Создание таблицы, если она не существует
 db.run('CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY, score INTEGER)');

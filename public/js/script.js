@@ -1,7 +1,8 @@
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 
-const playerId = 1; // Use a fixed ID for simplicity; this could be dynamic or user-specific
+let score = 0; // Инициализация переменной score
+const playerId = 1; // Используем фиксированный ID для простоты
 
 function start() {
     fetch(`/get-score/${playerId}`)
@@ -14,37 +15,37 @@ function start() {
 }
 
 function setScore(newScore) {
-    score = newScore; // Update the score variable
-    $score.textContent = score;
+    score = newScore; // Обновляем переменную score
+    $score.textContent = score; // Устанавливаем текстовое содержимое элемента
 }
 
 function setImage() {
     if (getScore() >= 50) {
-        $circle.setAttribute('src', './img/Designere46.jpeg');
+        $circle.setAttribute('src', 'img/Designere46.jpeg'); // Путь к изображению
     }
 }
 
 function getScore() {
-    return score; // Return the score variable
+    return score; // Возвращаем переменную score
 }
 
 function addOne() {
     setScore(getScore() + 1);
     setImage();
-    saveScore(score); // Save the score after updating
+    saveScore(score); // Сохраняем счет после обновления
 }
 
 function saveScore(score) {
-  fetch('/save-score', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ id: playerId, score })
-  })
-  .then(response => response.json())
-  .then(data => console.log('Score saved for ID:', data.id))
-  .catch(error => console.error('Error saving score:', error));
+    fetch('/save-score', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: playerId, score })
+    })
+    .then(response => response.json())
+    .then(data => console.log('Score saved for ID:', data.id))
+    .catch(error => console.error('Error saving score:', error));
 }
 
 $circle.addEventListener('click', (event) => {
@@ -76,7 +77,7 @@ $circle.addEventListener('click', (event) => {
 
     $circle.parentElement.appendChild(plusOne);
 
-    // Trigger the animation
+    // Запуск анимации
     setTimeout(() => {
         plusOne.classList.add('animate');
     }, 0);
