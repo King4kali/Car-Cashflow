@@ -1,17 +1,24 @@
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 
-let playerId = null; // Инициализируйте ID игрока через сервер или другой способ
+let playerId = null;
 let score = 0;
 
 function start() {
     fetch('/get-player-id')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             playerId = data.id;
             console.log('Player ID:', playerId);
         })
-        .catch(error => console.error('Error fetching player ID:', error));
+        .catch(error => {
+            console.error('Error fetching player ID:', error);
+        });
 }
 
 function setScore(newScore) {
