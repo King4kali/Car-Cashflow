@@ -1,8 +1,10 @@
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 
-let score = 0; // Инициализация переменной score
-const playerId = 1; // Используем фиксированный ID для простоты
+// Замените этот ID на реальный Telegram ID пользователя
+const playerId = 123456789; // Пример Telegram ID
+
+let score = 0;
 
 function start() {
     fetch(`/get-score/${playerId}`)
@@ -15,24 +17,24 @@ function start() {
 }
 
 function setScore(newScore) {
-    score = newScore; // Обновляем переменную score
-    $score.textContent = score; // Устанавливаем текстовое содержимое элемента
+    score = newScore;
+    $score.textContent = score;
 }
 
 function setImage() {
     if (getScore() >= 50) {
-        $circle.setAttribute('src', 'img/Designere46.jpeg'); // Путь к изображению
+        $circle.setAttribute('src', 'img/Designere46.jpeg');
     }
 }
 
 function getScore() {
-    return score; // Возвращаем переменную score
+    return score;
 }
 
 function addOne() {
     setScore(getScore() + 1);
     setImage();
-    saveScore(score); // Сохраняем счет после обновления
+    saveScore(score);
 }
 
 function saveScore(score) {
@@ -77,7 +79,6 @@ $circle.addEventListener('click', (event) => {
 
     $circle.parentElement.appendChild(plusOne);
 
-    // Запуск анимации
     setTimeout(() => {
         plusOne.classList.add('animate');
     }, 0);

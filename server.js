@@ -1,10 +1,15 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const app = express();
+const bodyParser = require('body-parser');
+const TelegramBot = require('node-telegram-bot-api');
 
 // Порт по умолчанию или порт из переменной окружения
 const port = process.env.PORT || 3000;
+
+// Создание экземпляра бота
+const token = '7423830672:AAGij0DcWzNdNyu8DGHZ3mbuWNKB0QUOr0U';
+const bot = new TelegramBot(token, { polling: true });
 
 // Подключение к базе данных
 const db = new sqlite3.Database('./scores.db');
@@ -13,7 +18,9 @@ const db = new sqlite3.Database('./scores.db');
 db.run('CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY, score INTEGER)');
 
 // Middleware для обработки JSON
+const app = express();
 app.use(express.json());
+app.use(bodyParser.json());
 
 // Обслуживание статических файлов из директории public
 app.use(express.static(path.join(__dirname, 'public')));
@@ -49,6 +56,44 @@ app.get('/get-score/:id', (req, res) => {
 // Маршрут для корневого URL
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Обработка команд от Telegram-бота
+bot.onText(/\/start/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'Привет! Отправьте /score, чтобы получить свой текущий счет, или /add <число>, чтобы добавить очки.');
+});
+
+bot.onText(/\/score/, (msg) => {
+    const chatId = msg.chat.id;
+    db.get('SELECT score FROM scores WHERE id = ?', [chatId], (err, row) => {
+        if (err) {
+            bot.sendMessage(chatId, 'Произошла ошибка при получении счета.');
+        } else {
+            const score = row ? row.score : 0;
+            bot.sendMessage(chatId, `Ваш текущий счет: ${score}`);
+        }
+    });
+});
+
+bot.onText(/\/add (\d+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+    const increment = parseInt(match[1], 10);
+
+    db.get('SELECT score FROM scores WHERE id = ?', [chatId], (err, row) => {
+        if (err) {
+            bot.sendMessage(chatId, 'Произошла ошибка при получении счета.');
+        } else {
+            const newScore = (row ? row.score : 0) + increment;
+            db.run('INSERT INTO scores (id, score) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET score = excluded.score', [chatId, newScore], function (err) {
+                if (err) {
+                    bot.sendMessage(chatId, 'Произошла ошибка при обновлении счета.');
+                } else {
+                    bot.sendMessage(chatId, `Ваш новый счет: ${newScore}`);
+                }
+            });
+        }
+    });
 });
 
 // Запуск сервера
