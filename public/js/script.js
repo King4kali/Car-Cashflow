@@ -1,22 +1,19 @@
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 
-let playerId = localStorage.getItem('playerId');
+// Замените этот ID на реальный Telegram ID пользователя
+const playerId = 123456789; // Пример Telegram ID
+
 let score = 0;
 
 function start() {
-    if (!playerId) {
-        // Попробуйте получить playerId из URL параметра, если доступно
-        const urlParams = new URLSearchParams(window.location.search);
-        playerId = urlParams.get('chatId');
-        if (playerId) {
-            localStorage.setItem('playerId', playerId);
-        } else {
-            console.error('No player ID found');
-        }
-    }
-
-    console.log('Player ID:', playerId);
+    fetch(`/get-score/${playerId}`)
+        .then(response => response.json())
+        .then(data => {
+            setScore(data.score);
+            setImage();
+        })
+        .catch(error => console.error('Error fetching score:', error));
 }
 
 function setScore(newScore) {
@@ -41,25 +38,16 @@ function addOne() {
 }
 
 function saveScore(score) {
-    if (playerId) {
-        fetch('/save-score', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id: playerId, score })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => console.log('Score saved for ID:', data.id))
-        .catch(error => console.error('Error saving score:', error));
-    } else {
-        console.error('No player ID available.');
-    }
+    fetch('/save-score', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: playerId, score })
+    })
+    .then(response => response.json())
+    .then(data => console.log('Score saved for ID:', data.id))
+    .catch(error => console.error('Error saving score:', error));
 }
 
 $circle.addEventListener('click', (event) => {
