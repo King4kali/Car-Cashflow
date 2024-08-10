@@ -1,25 +1,22 @@
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 
-let playerId = null;
+let playerId = localStorage.getItem('playerId');
 let score = 0;
 
-// Получение уникального ID Telegram пользователя
 function start() {
-    fetch('/get-player-id')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            playerId = data.id;
-            console.log('Player ID:', playerId);
-        })
-        .catch(error => {
-            console.error('Error fetching player ID:', error);
-        });
+    if (!playerId) {
+        // Попробуйте получить playerId из URL параметра, если доступно
+        const urlParams = new URLSearchParams(window.location.search);
+        playerId = urlParams.get('chatId');
+        if (playerId) {
+            localStorage.setItem('playerId', playerId);
+        } else {
+            console.error('No player ID found');
+        }
+    }
+
+    console.log('Player ID:', playerId);
 }
 
 function setScore(newScore) {

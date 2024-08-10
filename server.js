@@ -33,11 +33,6 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Генерация уникального playerId
-function generatePlayerId() {
-    return crypto.randomBytes(16).toString('hex');
-}
-
 // Регистрация пользователя в базе данных
 function registerUser(chatId) {
     db.get('SELECT id FROM scores WHERE id = ?', [chatId], (err, row) => {
@@ -62,7 +57,8 @@ function registerUser(chatId) {
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
     registerUser(chatId); // Регистрация пользователя
-    bot.sendMessage(chatId, 'Привет! Отправьте /score, чтобы получить свой текущий счет, или /add <число>, чтобы добавить очки.');
+    const siteUrl = 'https://car-cashflow.vercel.app/'; // Замените на URL вашего сайта
+    bot.sendMessage(chatId, `Привет! Перейдите по следующему [ссылке](${siteUrl}?chatId=${chatId}), чтобы начать играть и сохранить свой счет.`);
 });
 
 // Обработка команды /score
@@ -105,6 +101,23 @@ bot.onText(/\/add (\d+)/, (msg, match) => {
             });
         }
     });
+});
+
+// Сохранение счета
+app.post('/save-score', (req, res) => {
+    const { id, score } = req.body;
+    if (id && score !== undefined) {
+        db.run('INSERT INTO scores (id, score) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET score = excluded.score', [id, score], function (err) {
+            if (err) {
+                console.error('Error saving score:', err.message);
+                res.status(500).json({ error: 'Error saving score' });
+            } else {
+                res.json({ id, score });
+            }
+        });
+    } else {
+        res.status(400).json({ error: 'Invalid request data' });
+    }
 });
 
 // Запуск сервера
