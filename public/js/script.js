@@ -1,20 +1,7 @@
 const $circle = document.querySelector('#circle');
 const $score = document.querySelector('#score');
 
-// Замените этот ID на реальный Telegram ID пользователя
-const playerId = 123456789; // Пример Telegram ID
-
 let score = 0;
-
-function start() {
-    fetch(`/get-score/${playerId}`)
-        .then(response => response.json())
-        .then(data => {
-            setScore(data.score);
-            setImage();
-        })
-        .catch(error => console.error('Error fetching score:', error));
-}
 
 function setScore(newScore) {
     score = newScore;
