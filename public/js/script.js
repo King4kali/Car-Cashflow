@@ -3,6 +3,16 @@ const $score = document.querySelector('#score');
 
 let score = 0;
 
+function start() {
+    fetch(`/get-score`)
+        .then(response => response.json())
+        .then(data => {
+            setScore(data.score);
+            setImage();
+        })
+        .catch(error => console.error('Error fetching score:', error));
+}
+
 function setScore(newScore) {
     score = newScore;
     $score.textContent = score;
@@ -30,10 +40,10 @@ function saveScore(score) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ id: playerId, score })
+        body: JSON.stringify({ score })
     })
     .then(response => response.json())
-    .then(data => console.log('Score saved for ID:', data.id))
+    .then(data => console.log('Score saved'))
     .catch(error => console.error('Error saving score:', error));
 }
 
