@@ -2,15 +2,21 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bodyParser = require('body-parser');
+const axios = require('axios');
 
 // Порт по умолчанию или порт из переменной окружения
 const port = process.env.PORT || 3000;
+const telegramToken = 'YOUR_TELEGRAM_BOT_TOKEN'; // Замените на ваш токен
+const telegramApiUrl = `https://api.telegram.org/bot${telegramToken}`;
 
 // Подключение к базе данных
 const db = new sqlite3.Database('./scores.db');
 
-// Создание таблицы, если она не существует
-db.run('CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY, score INTEGER)');
+// Создание таблиц, если они не существуют
+db.serialize(() => {
+    db.run('CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY, score INTEGER)');
+    db.run('CREATE TABLE IF NOT EXISTS users (chat_id INTEGER PRIMARY KEY)');
+});
 
 // Middleware для обработки JSON
 const app = express();
@@ -57,6 +63,44 @@ app.get('/get-score', (req, res) => {
 // Маршрут для корневого URL
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Обработка webhook запросов от Telegram
+app.post(`/webhook`, (req, res) => {
+    const { message } = req.body;
+    if (message && message.text) {
+        const chatId = message.chat.id;
+        const text = message.text;
+
+        if (text === '/startr') {
+            // Сохранение chat_id в базу данных
+            db.run('INSERT OR IGNORE INTO users (chat_id) VALUES (?)', [chatId], function(err) {
+                if (err) {
+                    console.error('Error saving chat_id:', err);
+                } else {
+                    // Отправка сообщения в Telegram
+                    axios.post(`${telegramApiUrl}/sendMessage`, {
+                        chat_id: chatId,
+                        text: 'Chat ID saved successfully!'
+                    })
+                    .catch(error => console.error('Error sending message:', error));
+                }
+            });
+        }
+    }
+    res.sendStatus(200);
+});
+
+// Настройка webhook
+app.get('/set-webhook', (req, res) => {
+    axios.post(`${telegramApiUrl}/setWebhook`, {
+        url: `https://your-domain.com/webhook` // Замените на ваш домен
+    })
+    .then(response => res.json(response.data))
+    .catch(error => {
+        console.error('Error setting webhook:', error);
+        res.status(500).send('Error setting webhook');
+    });
 });
 
 // Запуск сервера
