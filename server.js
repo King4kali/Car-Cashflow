@@ -6,7 +6,7 @@ const axios = require('axios');
 
 // Порт по умолчанию или порт из переменной окружения
 const port = process.env.PORT || 3000;
-const telegramToken = 'YOUR_TELEGRAM_BOT_TOKEN'; // Замените на ваш токен
+const telegramToken = '7423830672:AAFneo5E9lPGO7t6-91QMEyxe9XTTdu1ia8'; // Замените на ваш токен
 const telegramApiUrl = `https://api.telegram.org/bot${telegramToken}`;
 
 // Подключение к базе данных
@@ -94,7 +94,7 @@ app.post(`/webhook`, (req, res) => {
 // Настройка webhook
 app.get('/set-webhook', (req, res) => {
     axios.post(`${telegramApiUrl}/setWebhook`, {
-        url: `https://your-domain.com/webhook` // Замените на ваш домен
+        url: `car-cashflow.vercel.app` // Замените на ваш домен
     })
     .then(response => res.json(response.data))
     .catch(error => {
