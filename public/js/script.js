@@ -10,7 +10,7 @@ function start() {
             setScore(data.score);
             setImage();
         })
-        .catch(error => console.error('Error fetching score:', error));
+        .catch(error => console.error('Ошибка при получении счёта:', error));
 }
 
 function setScore(newScore) {
@@ -43,8 +43,8 @@ function saveScore(score) {
         body: JSON.stringify({ score })
     })
     .then(response => response.json())
-    .then(data => console.log('Score saved'))
-    .catch(error => console.error('Error saving score:', error));
+    .then(data => console.log('Счёт сохранён'))
+    .catch(error => console.error('Ошибка при сохранении счёта:', error));
 }
 
 $circle.addEventListener('click', (event) => {
