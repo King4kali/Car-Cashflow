@@ -8,29 +8,25 @@ function start() {
         .then(response => response.json())
         .then(data => {
             setScore(data.score);
-            setImage();
+            updateImage();
         })
-        .catch(error => console.error('Ошибка при получении счёта:', error));
+        .catch(error => console.error('Error fetching score:', error));
 }
 
 function setScore(newScore) {
     score = newScore;
     $score.textContent = score;
+    updateImage();
 }
 
-function setImage() {
-    if (getScore() >= 50) {
+function updateImage() {
+    if (score >= 50) {
         $circle.setAttribute('src', 'img/Designere46.jpeg');
     }
 }
 
-function getScore() {
-    return score;
-}
-
-function addOne() {
-    setScore(getScore() + 1);
-    setImage();
+function incrementScore() {
+    setScore(score + 1);
     saveScore(score);
 }
 
@@ -43,19 +39,14 @@ function saveScore(score) {
         body: JSON.stringify({ score })
     })
     .then(response => response.json())
-    .then(data => console.log('Счёт сохранён'))
-    .catch(error => console.error('Ошибка при сохранении счёта:', error));
+    .catch(error => console.error('Error saving score:', error));
 }
 
 $circle.addEventListener('click', (event) => {
     const rect = $circle.getBoundingClientRect();
-    const parentRect = $circle.parentElement.getBoundingClientRect();
-
     const offsetX = event.clientX - rect.left - rect.width / 2;
     const offsetY = event.clientY - rect.top - rect.height / 2;
-
     const DEG = 40;
-
     const tiltX = (offsetY / rect.height) * DEG;
     const tiltY = (offsetX / rect.width) * -DEG;
 
@@ -71,8 +62,8 @@ $circle.addEventListener('click', (event) => {
     plusOne.classList.add('plus-one');
     plusOne.textContent = '+1';
     plusOne.style.position = 'absolute';
-    plusOne.style.left = `${event.clientX - parentRect.left}px`;
-    plusOne.style.top = `${event.clientY - parentRect.top}px`;
+    plusOne.style.left = `${event.clientX - rect.left}px`;
+    plusOne.style.top = `${event.clientY - rect.top}px`;
 
     $circle.parentElement.appendChild(plusOne);
 
@@ -80,7 +71,7 @@ $circle.addEventListener('click', (event) => {
         plusOne.classList.add('animate');
     }, 0);
 
-    addOne();
+    incrementScore();
 
     setTimeout(() => {
         plusOne.remove();
